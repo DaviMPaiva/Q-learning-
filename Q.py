@@ -53,25 +53,42 @@ rewards = [
     [  0,  0,  0,  0],
 ]
 
-def bellman(s,a,_s):
-    return (rewards[s][a] + (gamma * max(Q_matriz[_s])))
 
-
-def action_result(sate, transition):
+def action_result(transition):
     index = 0
     states = {}
+    transit = []
     values = []
     for i in transition:
         if i != 0:
             states[index] = i
-            values
+            transit.append(i)
+            values.append(index)
+        index += 1
     
+    for i in range(len(transit)-1):
+        for x in range(len(transit)-1):
+            if transit[x+1] < transit[x]:
+                transit[x], transit[x+1] = transit[x+1], transit[x]
+                values[x], values[x+1] = values[x+1], values[x]
+            
 
+    
+    somatorium = np.cumsum(transit)
+    r = random.random()
+    index = 0
+    for i in somatorium:
+        if i > r:
+            break
+        index += 1
+    
+    return values[index]
 
+        
     
 
 def update_func(s,a,_s):
-    Q_matriz[s][a] = Q_matriz[s][a] + alpha*(bellman(s,a,_s) - Q_matriz[s][a])
+    Q_matriz[s][a] = Q_matriz[s][a] + alpha*((rewards[s][a] + (gamma * max(Q_matriz[_s]))) - Q_matriz[s][a])
 
 
 def call_all():
@@ -79,28 +96,31 @@ def call_all():
     while True:
         trial = random.randint(0, 3)
         if trial == 0:
-            transition = matriz_up[0]
+            transition = matriz_up[state]
         
-        if trial == 1:
-            transition = matriz_lf[0]
+        elif trial == 1:
+            transition = matriz_lf[state]
 
-        if trial == 2:
-            transition = matriz_down[0]
+        elif trial == 2:
+            transition = matriz_down[state]
 
-        if trial == 3:
-            transition = matriz_rg[0]
+        elif trial == 3:
+            transition = matriz_rg[state]
             
-        next_state = action_result(state,transition)
+        next_state = action_result(transition)
 
-        print(state,actions_names[trial],next_state)
+        print(f'Present state: {state};')
+        print(f'Movement: {actions_names[trial]};')
+        print(f'Next state: {next_state}.\n')
                 
-        update_func(state,a,_s)
+        update_func(state, trial, next_state)
 
         state = next_state
 
-        if state == 6:
+        if state == 5:
             break
-    
+
+
 for _ in range(200):
     call_all()
 
@@ -116,6 +136,8 @@ def find_direction(s):
     if(dir==3):
         return('RG')
 
-print(find_direction(4) + "|" + "ok")
-print(find_direction(2) + "|" + find_direction(3))
-print(find_direction(0) + "|" + find_direction(1))
+print(f'\n ========================================= \n')
+print(f' ---------------- {find_direction(4)} | OK ----------------')
+print(f' ---------------- {find_direction(2)} | {find_direction(3)} ----------------')
+print(f' ---------------- {find_direction(0)} | {find_direction(1)} ----------------')
+print(f'\n =========================================')
